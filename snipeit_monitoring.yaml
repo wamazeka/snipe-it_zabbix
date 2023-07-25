@@ -1,0 +1,146 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    - uuid: c6e190b284634c48a39e55049da3cce8
+      name: Web
+  templates:
+    - uuid: 3cc9c036b80f413ab76ee38e3bbb1b4a
+      template: 'Snipe-IT monitoring'
+      name: 'Snipe-IT monitoring'
+      groups:
+        - name: Web
+      items:
+        - uuid: 64a51243e7a94724a589554a074054f4
+          name: Assets
+          type: HTTP_AGENT
+          key: sklad.assets
+          delay: 12h
+          history: 600d
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.body.total
+          url: '{$SNIPEIT_URL}/api/v1/hardware'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Content-Type
+              value: application/json
+            - name: Authorization
+              value: '{$SNIPEIT_TOKEN}'
+          output_format: JSON
+          verify_peer: 'YES'
+        - uuid: 0df7011d66174d1e86b4589ba0add178
+          name: Licenses
+          type: HTTP_AGENT
+          key: sklad.licenses
+          delay: 12h
+          history: 600d
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.body.total
+          url: '{$SNIPEIT_URL}/api/v1/licenses'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Content-Type
+              value: application/json
+            - name: Authorization
+              value: '{$SNIPEIT_TOKEN}'
+          output_format: JSON
+          verify_peer: 'YES'
+        - uuid: f4f7033665684b179c478a3627e597e6
+          name: Models
+          type: HTTP_AGENT
+          key: sklad.models
+          delay: 12h
+          history: 600d
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.body.total
+          url: '{$SNIPEIT_URL}/api/v1/models'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Content-Type
+              value: application/json
+            - name: Authorization
+              value: '{$SNIPEIT_TOKEN}'
+          output_format: JSON
+          verify_peer: 'YES'
+        - uuid: 8680d20faf4e4684876d450500a88731
+          name: 'Statuslabels parsing'
+          type: HTTP_AGENT
+          key: sklad.statuslabels.parsing
+          delay: 1d
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          url: '{$SNIPEIT_URL}/api/v1/statuslabels'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Content-Type
+              value: application/json
+            - name: Authorization
+              value: '{$SNIPEIT_TOKEN}'
+          output_format: JSON
+        - uuid: 126f1cbc385b40f19fd1a1c88b593435
+          name: Users
+          type: HTTP_AGENT
+          key: sklad.users
+          delay: 12h
+          history: 600d
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.body.total
+          url: '{$SNIPEIT_URL}/api/v1/users'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Content-Type
+              value: application/json
+            - name: Authorization
+              value: '{$SNIPEIT_TOKEN}'
+          output_format: JSON
+          verify_peer: 'YES'
+      discovery_rules:
+        - uuid: fd3e1f3f180f4928bc9b5f49b8f0856f
+          name: 'Asset statuslabels discovery'
+          type: DEPENDENT
+          key: sklad.statuslabels.discovery
+          delay: '0'
+          item_prototypes:
+            - uuid: 7c9e56fcb9524349b7ab43a992ef3277
+              name: 'Label {#NAME} count'
+              type: DEPENDENT
+              key: 'sklad.label.count.[{#NAME}]'
+              delay: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$..[?(@.name==''{#NAME}'')].assets_count'
+                - type: TRIM
+                  parameters:
+                    - '[]'
+              master_item:
+                key: sklad.statuslabels.parsing
+          master_item:
+            key: sklad.statuslabels.parsing
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$..rows[:]'
+            - type: STR_REPLACE
+              parameters:
+                - '"name"'
+                - '"{#NAME}"'
+      macros:
+        - macro: '{$SNIPEIT_TOKEN}'
+        - macro: '{$SNIPEIT_URL}'
