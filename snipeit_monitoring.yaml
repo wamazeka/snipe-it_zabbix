@@ -30,6 +30,23 @@ zabbix_export:
               value: '{$SNIPEIT_TOKEN}'
           output_format: JSON
           verify_peer: 'YES'
+        - uuid: 3297016756a04d629700e89c455fed9d
+          name: 'Categories parsing'
+          type: HTTP_AGENT
+          key: sklad.categories.parsing
+          delay: 1d
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          url: '{$SNIPEIT_URL}/api/v1/categories'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Content-Type
+              value: application/json
+            - name: Authorization
+              value: '{$SNIPEIT_TOKEN}'
+          output_format: JSON
         - uuid: 0df7011d66174d1e86b4589ba0add178
           name: Licenses
           type: HTTP_AGENT
@@ -111,6 +128,36 @@ zabbix_export:
           output_format: JSON
           verify_peer: 'YES'
       discovery_rules:
+        - uuid: 4ad60618f77746ca87a82e5b0622d9f0
+          name: 'Categories discovery'
+          type: DEPENDENT
+          key: sklad.categories.discovery
+          delay: '0'
+          item_prototypes:
+            - uuid: aa789a3e75a042b8a56b3de5d33bc2e8
+              name: 'Category {#NAME} count'
+              type: DEPENDENT
+              key: 'sklad.category.count.[{#NAME}]'
+              delay: '0'
+              preprocessing:
+                - type: JSONPATH
+                  parameters:
+                    - '$..[?(@.name==''{#NAME}'')].assets_count'
+                - type: TRIM
+                  parameters:
+                    - '[]'
+              master_item:
+                key: sklad.categories.parsing
+          master_item:
+            key: sklad.categories.parsing
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - '$..rows[:]'
+            - type: STR_REPLACE
+              parameters:
+                - '"name"'
+                - '"{#NAME}"'
         - uuid: fd3e1f3f180f4928bc9b5f49b8f0856f
           name: 'Asset statuslabels discovery'
           type: DEPENDENT
