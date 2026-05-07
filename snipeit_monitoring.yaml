@@ -10,6 +10,9 @@ zabbix_export:
       groups:
         - name: Web
       items:
+
+        # ── existing items ──────────────────────────────────────────────────
+
         - uuid: 64a51243e7a94724a589554a074054f4
           name: Assets
           type: HTTP_AGENT
@@ -30,6 +33,7 @@ zabbix_export:
               value: 'Bearer {$SNIPEIT_TOKEN}'
           output_format: JSON
           verify_peer: 'YES'
+
         - uuid: 3297016756a04d629700e89c455fed9d
           name: 'Categories parsing'
           type: HTTP_AGENT
@@ -46,6 +50,7 @@ zabbix_export:
             - name: Authorization
               value: 'Bearer {$SNIPEIT_TOKEN}'
           output_format: JSON
+
         - uuid: 0df7011d66174d1e86b4589ba0add178
           name: Licenses
           type: HTTP_AGENT
@@ -67,6 +72,7 @@ zabbix_export:
               value: 'Bearer {$SNIPEIT_TOKEN}'
           output_format: JSON
           verify_peer: 'YES'
+
         - uuid: f4f7033665684b179c478a3627e597e6
           name: Models
           type: HTTP_AGENT
@@ -88,6 +94,7 @@ zabbix_export:
               value: 'Bearer {$SNIPEIT_TOKEN}'
           output_format: JSON
           verify_peer: 'YES'
+
         - uuid: 8680d20faf4e4684876d450500a88731
           name: 'Statuslabels parsing'
           type: HTTP_AGENT
@@ -104,6 +111,7 @@ zabbix_export:
             - name: Authorization
               value: 'Bearer {$SNIPEIT_TOKEN}'
           output_format: JSON
+
         - uuid: 126f1cbc385b40f19fd1a1c88b593435
           name: Users
           type: HTTP_AGENT
@@ -125,7 +133,138 @@ zabbix_export:
               value: 'Bearer {$SNIPEIT_TOKEN}'
           output_format: JSON
           verify_peer: 'YES'
+
+        # ── new items ───────────────────────────────────────────────────────
+
+        - uuid: 7178571690a54ba8820bfb960a7305e3
+          name: 'API Health (HTTP status)'
+          type: HTTP_AGENT
+          key: snipeit.api.health
+          delay: 30m
+          history: 7d
+          trends: 90d
+          retrieve_mode: HEADERS
+          url: '{$SNIPEIT_URL}/api/v1/hardware?limit=1'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Authorization
+              value: 'Bearer {$SNIPEIT_TOKEN}'
+          preprocessing:
+            - type: REGEX
+              parameters:
+                - 'HTTP\/[\d.]+ (\d+)'
+                - '\1'
+          verify_peer: 'YES'
+
+        - uuid: 73e9bd1b68764d6bac4ed82488eb3edf
+          name: Maintenances
+          type: HTTP_AGENT
+          key: sklad.maintenances
+          delay: 12h
+          history: 600d
+          trends: 365d
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.body.total
+          url: '{$SNIPEIT_URL}/api/v1/maintenances'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Content-Type
+              value: application/json
+            - name: Authorization
+              value: 'Bearer {$SNIPEIT_TOKEN}'
+          output_format: JSON
+          verify_peer: 'YES'
+
+        - uuid: 8d46e4056a23466faef8ffdd21ae3f2f
+          name: 'Recent maintenances (last 4)'
+          type: HTTP_AGENT
+          key: sklad.maintenances.recent
+          delay: 1h
+          history: 7d
+          trends: '0'
+          value_type: TEXT
+          url: '{$SNIPEIT_URL}/api/v1/maintenances?limit=4&sort=start_date&order=desc'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Authorization
+              value: 'Bearer {$SNIPEIT_TOKEN}'
+          output_format: JSON
+          verify_peer: 'YES'
+          preprocessing:
+            - type: JAVASCRIPT
+              parameters:
+                - |
+                  var d = JSON.parse(value);
+                  var rows = d.body && d.body.rows ? d.body.rows : [];
+                  if (!rows.length) return 'No maintenances found';
+                  return rows.slice(0, 4).map(function(m) {
+                    var asset = m.asset ? m.asset.name : 'Unknown asset';
+                    var type  = m.asset_maintenance_type || 'Maintenance';
+                    var date  = m.start_date
+                                ? (typeof m.start_date === 'object'
+                                   ? m.start_date.formatted
+                                   : String(m.start_date).substring(0, 10))
+                                : '—';
+                    var notes = m.notes ? '  (' + m.notes + ')' : '';
+                    return date + '  ' + asset + '  [' + type + ']' + notes;
+                  }).join('\n');
+
+        - uuid: 601fbdfa138f40498cecc5358758034a
+          name: 'Assets with overdue audit'
+          type: HTTP_AGENT
+          key: sklad.assets.audit.overdue
+          delay: 1h
+          history: 90d
+          trends: 365d
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.body.total
+          url: '{$SNIPEIT_URL}/api/v1/hardware/audit/overdue'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Authorization
+              value: 'Bearer {$SNIPEIT_TOKEN}'
+          output_format: JSON
+          verify_peer: 'YES'
+
+        - uuid: 3170132d07784308be8c4d789d5cd16e
+          name: 'Activity log total count'
+          type: HTTP_AGENT
+          key: sklad.activity.total
+          delay: 1h
+          history: 90d
+          trends: 365d
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.body.total
+          url: '{$SNIPEIT_URL}/api/v1/reports/activity?limit=1'
+          headers:
+            - name: Accept
+              value: application/json
+            - name: Authorization
+              value: 'Bearer {$SNIPEIT_TOKEN}'
+          output_format: JSON
+          verify_peer: 'YES'
+
+        - uuid: 0c7abeceaf6e4573a7cc92f503f1474f
+          name: 'Activity changes (24h)'
+          type: CALCULATED
+          key: sklad.activity.24h
+          delay: 1h
+          history: 90d
+          trends: 365d
+          params: 'last(/Snipe-IT monitoring/sklad.activity.total)-last(/Snipe-IT monitoring/sklad.activity.total,#25)'
+
       discovery_rules:
+
         - uuid: 4ad60618f77746ca87a82e5b0622d9f0
           name: 'Categories discovery'
           type: DEPENDENT
@@ -156,6 +295,7 @@ zabbix_export:
               parameters:
                 - '"name"'
                 - '"{#NAME}"'
+
         - uuid: fd3e1f3f180f4928bc9b5f49b8f0856f
           name: 'Asset statuslabels discovery'
           type: DEPENDENT
@@ -176,6 +316,13 @@ zabbix_export:
                     - '[]'
               master_item:
                 key: sklad.statuslabels.parsing
+          trigger_prototypes:
+            - uuid: 4214a5035f2e418aa0a54283954a31db
+              expression: 'last(/Snipe-IT monitoring/sklad.label.count.[{#NAME}])=0'
+              name: 'Status label "{#NAME}" has 0 assets'
+              priority: INFO
+              manual_close: 'YES'
+              description: 'No assets assigned to status label "{#NAME}". May be expected for labels like Archived.'
           master_item:
             key: sklad.statuslabels.parsing
           preprocessing:
@@ -186,6 +333,333 @@ zabbix_export:
               parameters:
                 - '"name"'
                 - '"{#NAME}"'
+
       macros:
         - macro: '{$SNIPEIT_TOKEN}'
         - macro: '{$SNIPEIT_URL}'
+        - macro: '{$SNIPEIT_MAINTENANCE_SPIKE}'
+          value: '5'
+          description: 'New maintenance records per 12h poll cycle to trigger WARNING'
+
+      dashboards:
+        - uuid: 1a891f83184f46f7813b3b41cb72da37
+          name: 'Snipe-IT Overview'
+          pages:
+            - widgets:
+
+                # ── row 1: main counters with change indicator (y=0, h=4) ──
+
+                - type: item
+                  name: Assets
+                  width: '18'
+                  height: '4'
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'Snipe-IT monitoring'
+                        key: sklad.assets
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: show
+                      value: '3'
+                    - type: STRING
+                      name: reference
+                      value: AAAAA
+
+                - type: item
+                  name: Users
+                  x: '18'
+                  width: '18'
+                  height: '4'
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'Snipe-IT monitoring'
+                        key: sklad.users
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: show
+                      value: '3'
+                    - type: STRING
+                      name: reference
+                      value: AAAAB
+
+                - type: item
+                  name: Licenses
+                  x: '36'
+                  width: '18'
+                  height: '4'
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'Snipe-IT monitoring'
+                        key: sklad.licenses
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: show
+                      value: '3'
+                    - type: STRING
+                      name: reference
+                      value: AAAAC
+
+                - type: item
+                  name: Models
+                  x: '54'
+                  width: '18'
+                  height: '4'
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'Snipe-IT monitoring'
+                        key: sklad.models
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: show
+                      value: '3'
+                    - type: STRING
+                      name: reference
+                      value: AAAAD
+
+                # ── row 2: operational counters (y=4, h=4) ──────────────────
+
+                - type: item
+                  name: Maintenances
+                  'y': '4'
+                  width: '18'
+                  height: '4'
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'Snipe-IT monitoring'
+                        key: sklad.maintenances
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: show
+                      value: '3'
+                    - type: STRING
+                      name: reference
+                      value: AAAAE
+
+                - type: item
+                  name: 'Overdue audits'
+                  x: '18'
+                  'y': '4'
+                  width: '18'
+                  height: '4'
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'Snipe-IT monitoring'
+                        key: sklad.assets.audit.overdue
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: show
+                      value: '3'
+                    - type: STRING
+                      name: reference
+                      value: AAAAF
+
+                - type: item
+                  name: 'Changes (24h)'
+                  x: '36'
+                  'y': '4'
+                  width: '18'
+                  height: '4'
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'Snipe-IT monitoring'
+                        key: sklad.activity.24h
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: show
+                      value: '3'
+                    - type: STRING
+                      name: reference
+                      value: AAAAG
+
+                - type: item
+                  name: 'API Status'
+                  x: '54'
+                  'y': '4'
+                  width: '18'
+                  height: '4'
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'Snipe-IT monitoring'
+                        key: snipeit.api.health
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: INTEGER
+                      name: show
+                      value: '3'
+                    - type: STRING
+                      name: reference
+                      value: AAAAH
+
+                # ── row 3: recent maintenances text (y=8, h=6) ──────────────
+
+                - type: item
+                  name: 'Recent maintenances'
+                  'y': '8'
+                  width: '72'
+                  height: '6'
+                  fields:
+                    - type: ITEM
+                      name: itemid
+                      value:
+                        host: 'Snipe-IT monitoring'
+                        key: sklad.maintenances.recent
+                    - type: INTEGER
+                      name: show
+                      value: '2'
+                    - type: STRING
+                      name: reference
+                      value: AAAAI
+
+                # ── row 4: active problems (y=14, h=5) ──────────────────────
+
+                - type: problems
+                  name: 'Active Problems'
+                  'y': '14'
+                  width: '72'
+                  height: '5'
+                  fields:
+                    - type: INTEGER
+                      name: show_lines
+                      value: '20'
+                    - type: INTEGER
+                      name: show_tags
+                      value: '2'
+                    - type: INTEGER
+                      name: sort_triggers
+                      value: '0'
+                    - type: INTEGER
+                      name: severities
+                      value: '63'
+                    - type: STRING
+                      name: reference
+                      value: AAAAJ
+
+                # ── row 5: asset dynamics SVG graph (y=19, h=7) ─────────────
+
+                - type: svggraph
+                  name: 'Asset dynamics'
+                  'y': '19'
+                  width: '72'
+                  height: '7'
+                  fields:
+                    - type: STRING
+                      name: ds.0.hosts.0
+                      value: 'Snipe-IT monitoring'
+                    - type: STRING
+                      name: ds.0.items.0
+                      value: sklad.assets
+                    - type: STRING
+                      name: ds.0.label
+                      value: 'Total assets'
+                    - type: STRING
+                      name: ds.0.color
+                      value: '1A7C11'
+                    - type: INTEGER
+                      name: ds.0.drawtype
+                      value: '5'
+                    - type: INTEGER
+                      name: ds.0.fill
+                      value: '3'
+                    - type: STRING
+                      name: ds.1.hosts.0
+                      value: 'Snipe-IT monitoring'
+                    - type: STRING
+                      name: ds.1.items.0
+                      value: sklad.maintenances
+                    - type: STRING
+                      name: ds.1.label
+                      value: Maintenances
+                    - type: STRING
+                      name: ds.1.color
+                      value: 'C05FD8'
+                    - type: INTEGER
+                      name: ds.1.drawtype
+                      value: '2'
+                    - type: STRING
+                      name: ds.2.hosts.0
+                      value: 'Snipe-IT monitoring'
+                    - type: STRING
+                      name: ds.2.items.0
+                      value: sklad.assets.audit.overdue
+                    - type: STRING
+                      name: ds.2.label
+                      value: 'Overdue audits'
+                    - type: STRING
+                      name: ds.2.color
+                      value: 'E45959'
+                    - type: INTEGER
+                      name: ds.2.drawtype
+                      value: '2'
+                    - type: INTEGER
+                      name: legend
+                      value: '1'
+                    - type: INTEGER
+                      name: show_problems
+                      value: '1'
+                    - type: STRING
+                      name: reference
+                      value: AAAAK
+
+  triggers:
+
+    - uuid: d16d88a1f4054ed1b8fd91653a3d462b
+      expression: 'last(/Snipe-IT monitoring/snipeit.api.health)<>200'
+      name: 'Snipe-IT API is returning errors (HTTP {ITEM.LASTVALUE})'
+      priority: HIGH
+      manual_close: 'YES'
+      description: 'API responded with a non-200 status. Check service health, token validity, and server logs.'
+
+    - uuid: 48b6cb7c9c3e4fc18df829f6116fc95b
+      expression: 'nodata(/Snipe-IT monitoring/snipeit.api.health,2h)=1'
+      name: 'Snipe-IT API is unreachable (no data for 2h)'
+      priority: HIGH
+      manual_close: 'YES'
+      description: 'No response from the Snipe-IT API health check for 2 hours. Possible network issue or service outage.'
+      dependencies:
+        - name: 'Snipe-IT API is returning errors (HTTP {ITEM.LASTVALUE})'
+          expression: 'last(/Snipe-IT monitoring/snipeit.api.health)<>200'
+
+    - uuid: 1746308a41784433a0ba9563b8463d96
+      expression: 'last(/Snipe-IT monitoring/sklad.assets.audit.overdue)>0'
+      name: 'Snipe-IT: {ITEM.LASTVALUE} asset(s) have overdue audit'
+      priority: WARNING
+      manual_close: 'YES'
+      description: 'One or more assets have exceeded the configured audit interval. Review in Snipe-IT Admin > Settings > Notifications.'
+
+    - uuid: f60be45f2b40403b97ae37eeed80b246
+      expression: 'last(/Snipe-IT monitoring/sklad.maintenances)-last(/Snipe-IT monitoring/sklad.maintenances,#2)>{$SNIPEIT_MAINTENANCE_SPIKE}'
+      name: 'Snipe-IT: Maintenances count spiked by more than {$SNIPEIT_MAINTENANCE_SPIKE}'
+      priority: WARNING
+      manual_close: 'YES'
+      description: 'A large number of maintenance records were added in a single polling cycle. May indicate a bulk import or automated process.'
