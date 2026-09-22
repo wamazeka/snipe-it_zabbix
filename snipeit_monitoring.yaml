@@ -1,191 +1,1008 @@
 zabbix_export:
   version: '7.4'
   template_groups:
-    - uuid: c6e190b284634c48a39e55049da3cce8
-      name: Web
+  - uuid: c6e190b284634c48a39e55049da3cce8
+    name: Web
   templates:
-    - uuid: 3cc9c036b80f413ab76ee38e3bbb1b4a
-      template: 'Snipe-IT monitoring'
-      name: 'Snipe-IT monitoring'
-      groups:
-        - name: Web
-      items:
-        - uuid: 64a51243e7a94724a589554a074054f4
-          name: Assets
-          type: HTTP_AGENT
-          key: sklad.assets
-          delay: 12h
-          history: 600d
-          preprocessing:
-            - type: JSONPATH
-              parameters:
-                - $.body.total
-          url: '{$SNIPEIT_URL}/api/v1/hardware'
-          headers:
-            - name: Accept
-              value: application/json
-            - name: Content-Type
-              value: application/json
-            - name: Authorization
-              value: 'Bearer {$SNIPEIT_TOKEN}'
-          output_format: JSON
-          verify_peer: 'YES'
-        - uuid: 3297016756a04d629700e89c455fed9d
-          name: 'Categories parsing'
-          type: HTTP_AGENT
+  - uuid: 3cc9c036b80f413ab76ee38e3bbb1b4a
+    template: Snipe-IT monitoring
+    name: Snipe-IT monitoring
+    description: 'Inventory and maintenance monitoring of a Snipe-IT asset management system via its REST
+      API (Zabbix HTTP agent items).
+
+
+      Metrics: totals of assets, users, licenses, models, accessories, components, consumables, locations,
+      suppliers, manufacturers and maintenance records (total and open). Discovery of categories and status
+      labels with per-label asset counts. Discovery of open maintenances with their age in days and warning/critical
+      triggers for stale records.
+
+
+      Setup:
+
+      1. Create an API token in Snipe-IT (User -> API Keys) and put it into the {$SNIPEIT_TOKEN} macro
+      on the host.
+
+      2. Set {$SNIPEIT_URL} to the base URL of the instance.
+
+      3. Tune {$SNIPEIT.MAINT.AGE.WARN}/{$SNIPEIT.MAINT.AGE.CRIT} thresholds (days) if needed.
+
+
+      API reference: https://snipe-it.readme.io/reference/api-overview'
+    groups:
+    - name: Web
+    items:
+    - uuid: 64a51243e7a94724a589554a074054f4
+      name: Assets
+      type: HTTP_AGENT
+      key: sklad.assets
+      delay: 12h
+      history: 600d
+      description: Total number of assets (hardware) registered in Snipe-IT.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/hardware'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+    - uuid: 126f1cbc385b40f19fd1a1c88b593435
+      name: Users
+      type: HTTP_AGENT
+      key: sklad.users
+      delay: 12h
+      history: 600d
+      description: Total number of users in Snipe-IT.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/users'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+      trends: '0'
+    - uuid: 0df7011d66174d1e86b4589ba0add178
+      name: Licenses
+      type: HTTP_AGENT
+      key: sklad.licenses
+      delay: 12h
+      history: 600d
+      description: Total number of licenses.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/licenses'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+      trends: '0'
+    - uuid: f4f7033665684b179c478a3627e597e6
+      name: Models
+      type: HTTP_AGENT
+      key: sklad.models
+      delay: 12h
+      history: 600d
+      description: Total number of asset models.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/models'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+      trends: '0'
+    - uuid: 87bfcbaa860d4239b93d685388698ea0
+      name: Accessories
+      type: HTTP_AGENT
+      key: sklad.accessories
+      delay: 12h
+      history: 600d
+      description: Total number of accessories.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/accessories'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+    - uuid: 2f93036cfacd45a384bc6361e140edd6
+      name: Components
+      type: HTTP_AGENT
+      key: sklad.components
+      delay: 12h
+      history: 600d
+      description: Total number of components (RAM, HDDs and other parts).
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/components'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+    - uuid: fe68ac6228ad41368de13f5bf4e43ac5
+      name: Consumables
+      type: HTTP_AGENT
+      key: sklad.consumables
+      delay: 12h
+      history: 600d
+      description: Total number of consumables (paper, toner cartridges and other expendables).
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/consumables'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+    - uuid: e5e6d682057f4c169387507225ca2390
+      name: Locations
+      type: HTTP_AGENT
+      key: sklad.locations
+      delay: 12h
+      history: 600d
+      description: Total number of locations.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/locations'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+    - uuid: e498b9d2e68b42099057bd4047f5c6eb
+      name: Manufacturers
+      type: HTTP_AGENT
+      key: sklad.manufacturers
+      delay: 12h
+      history: 600d
+      description: Total number of manufacturers.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/manufacturers'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+    - uuid: c637a089e1204e91a59ec3ab5f6fa082
+      name: Suppliers
+      type: HTTP_AGENT
+      key: sklad.suppliers
+      delay: 12h
+      history: 600d
+      description: Total number of suppliers.
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      url: '{$SNIPEIT_URL}/api/v1/suppliers'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: total
+    - uuid: 3297016756a04d629700e89c455fed9d
+      name: Categories parsing
+      type: HTTP_AGENT
+      key: sklad.categories.parsing
+      delay: 1d
+      history: '0'
+      value_type: TEXT
+      description: Raw categories list. Master data for category discovery.
+      url: '{$SNIPEIT_URL}/api/v1/categories'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: raw
+    - uuid: 8680d20faf4e4684876d450500a88731
+      name: Statuslabels parsing
+      type: HTTP_AGENT
+      key: sklad.statuslabels.parsing
+      delay: 1d
+      history: '0'
+      value_type: TEXT
+      description: Raw status labels list. Master data for status label discovery.
+      url: '{$SNIPEIT_URL}/api/v1/statuslabels'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: raw
+    - uuid: 0026f4dfa18b4cf59ee67ebd906cae76
+      name: Maintenances parsing
+      type: HTTP_AGENT
+      key: sklad.maintenances.parsing
+      delay: 1h
+      history: '0'
+      value_type: TEXT
+      description: Raw list of asset maintenances. Master data for the maintenance discovery. Fetch window
+        is set by {$SNIPEIT.MAINT.LIMIT}.
+      url: '{$SNIPEIT_URL}/api/v1/maintenances?limit={$SNIPEIT.MAINT.LIMIT}'
+      headers:
+      - name: Accept
+        value: application/json
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: Bearer {$SNIPEIT_TOKEN}
+      output_format: JSON
+      verify_peer: 'YES'
+      status_codes: '200'
+      timeout: '{$SNIPEIT.HTTP_TIMEOUT}'
+      tags:
+      - tag: component
+        value: raw
+    - uuid: d4ac8496ee464c9185d14dc3f25f977f
+      name: Maintenances total
+      type: DEPENDENT
+      key: sklad.maintenances
+      history: 600d
+      description: Total number of maintenance records (open and completed).
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $.body.total
+      master_item:
+        key: sklad.maintenances.parsing
+      tags:
+      - tag: component
+        value: maintenance
+    - uuid: 960493cf128f4d8b8bd5bd34379a449c
+      name: Open maintenances
+      type: DEPENDENT
+      key: sklad.maintenances.open
+      history: 600d
+      description: Number of maintenance records without a completion date.
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - 'var rows = JSON.parse(value).body.rows;
+
+          var n = 0;
+
+          for (var i = 0; i < rows.length; i++) { if (rows[i].completion_date === null) { n++; } }
+
+          return n;'
+      master_item:
+        key: sklad.maintenances.parsing
+      tags:
+      - tag: component
+        value: maintenance
+    discovery_rules:
+    - uuid: 4ad60618f77746ca87a82e5b0622d9f0
+      name: Categories discovery
+      type: DEPENDENT
+      key: sklad.categories.discovery
+      lifetime: 30d
+      enabled_lifetime_type: DISABLE_NEVER
+      item_prototypes:
+      - uuid: aa789a3e75a042b8a56b3de5d33bc2e8
+        name: Category {#NAME} count
+        type: DEPENDENT
+        key: sklad.categories.count.[{#NAME}]
+        preprocessing:
+        - type: JSONPATH
+          parameters:
+          - $..[?(@.name=='{#NAME}')].assets_count
+        - type: TRIM
+          parameters:
+          - '[]'
+        master_item:
           key: sklad.categories.parsing
-          delay: 1d
-          history: '0'
-          value_type: TEXT
-          url: '{$SNIPEIT_URL}/api/v1/categories'
-          headers:
-            - name: Accept
-              value: application/json
-            - name: Content-Type
-              value: application/json
-            - name: Authorization
-              value: 'Bearer {$SNIPEIT_TOKEN}'
-          output_format: JSON
-        - uuid: 0df7011d66174d1e86b4589ba0add178
-          name: Licenses
-          type: HTTP_AGENT
-          key: sklad.licenses
-          delay: 12h
-          history: 600d
-          trends: '0'
-          preprocessing:
-            - type: JSONPATH
-              parameters:
-                - $.body.total
-          url: '{$SNIPEIT_URL}/api/v1/licenses'
-          headers:
-            - name: Accept
-              value: application/json
-            - name: Content-Type
-              value: application/json
-            - name: Authorization
-              value: 'Bearer {$SNIPEIT_TOKEN}'
-          output_format: JSON
-          verify_peer: 'YES'
-        - uuid: f4f7033665684b179c478a3627e597e6
-          name: Models
-          type: HTTP_AGENT
-          key: sklad.models
-          delay: 12h
-          history: 600d
-          trends: '0'
-          preprocessing:
-            - type: JSONPATH
-              parameters:
-                - $.body.total
-          url: '{$SNIPEIT_URL}/api/v1/models'
-          headers:
-            - name: Accept
-              value: application/json
-            - name: Content-Type
-              value: application/json
-            - name: Authorization
-              value: 'Bearer {$SNIPEIT_TOKEN}'
-          output_format: JSON
-          verify_peer: 'YES'
-        - uuid: 8680d20faf4e4684876d450500a88731
-          name: 'Statuslabels parsing'
-          type: HTTP_AGENT
+      master_item:
+        key: sklad.categories.parsing
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $..rows[:]
+      - type: STR_REPLACE
+        parameters:
+        - '"name"'
+        - '"{#NAME}"'
+    - uuid: fd3e1f3f180f4928bc9b5f49b8f0856f
+      name: Asset statuslabels discovery
+      type: DEPENDENT
+      key: sklad.statuslabels.discovery
+      lifetime: 30d
+      enabled_lifetime_type: DISABLE_NEVER
+      item_prototypes:
+      - uuid: 7c9e56fcb9524349b7ab43a992ef3277
+        name: Label {#NAME} count
+        type: DEPENDENT
+        key: sklad.statuslabels.count.[{#NAME}]
+        preprocessing:
+        - type: JSONPATH
+          parameters:
+          - $..[?(@.name=='{#NAME}')].assets_count
+        - type: TRIM
+          parameters:
+          - '[]'
+        master_item:
           key: sklad.statuslabels.parsing
-          delay: 1d
-          history: '0'
-          value_type: TEXT
-          url: '{$SNIPEIT_URL}/api/v1/statuslabels'
-          headers:
-            - name: Accept
-              value: application/json
-            - name: Content-Type
-              value: application/json
-            - name: Authorization
-              value: 'Bearer {$SNIPEIT_TOKEN}'
-          output_format: JSON
-        - uuid: 126f1cbc385b40f19fd1a1c88b593435
-          name: Users
-          type: HTTP_AGENT
+      master_item:
+        key: sklad.statuslabels.parsing
+      preprocessing:
+      - type: JSONPATH
+        parameters:
+        - $..rows[:]
+      - type: STR_REPLACE
+        parameters:
+        - '"name"'
+        - '"{#NAME}"'
+    - uuid: a6c4db35b76c48afb6c7ac4ba57b9453
+      name: Open maintenances discovery
+      type: DEPENDENT
+      key: sklad.maintenances.discovery
+      lifetime: 7d
+      enabled_lifetime_type: DISABLE_NEVER
+      description: Discovers asset maintenances that have no completion date yet. Completed records drop
+        out of discovery and their entities are removed after the lifetime (7d).
+      item_prototypes:
+      - uuid: 01c00e48b7694e9692fcac9b1c8a5501
+        name: Maintenance {#MAINT.ID} "{#MAINT.TITLE}" age
+        type: DEPENDENT
+        key: sklad.maint.age[{#MAINT.ID}]
+        history: 90d
+        trends: '0'
+        value_type: UNSIGNED
+        units: d
+        description: 'Age of the open maintenance in days: now() minus start_date. Asset: {#MAINT.ASSET}
+          ({#MAINT.ASSET_TAG}), type: {#MAINT.TYPE}, started: {#MAINT.START}.'
+        preprocessing:
+        - type: JSONPATH
+          parameters:
+          - $..rows[?(@.id=={#MAINT.ID})].start_date.datetime
+        - type: JAVASCRIPT
+          parameters:
+          - 'var m = JSON.parse(value);
+
+            if (!m || !m.length) { return ''''; }
+
+            var t = new Date(String(m[0]).replace('' '', ''T'') + ''Z'').getTime();
+
+            if (isNaN(t)) { return ''''; }
+
+            var days = Math.floor((Date.now() - t) / 86400000);
+
+            return days < 0 ? 0 : days;'
+        master_item:
+          key: sklad.maintenances.parsing
+        trigger_prototypes:
+        - uuid: 8dd39b083e8241b5be59bd80426a32ff
+          expression: last(/Snipe-IT monitoring/sklad.maint.age[{#MAINT.ID}])>{$SNIPEIT.MAINT.AGE.CRIT}
+          name: Maintenance "{#MAINT.TITLE}" (asset {#MAINT.ASSET}) takes over {$SNIPEIT.MAINT.AGE.CRIT}
+            days
+          priority: HIGH
+          description: The maintenance has been open for more than {$SNIPEIT.MAINT.AGE.CRIT} days. Check
+            that the work is progressing or close the record in Snipe-IT.
+          opdata: 'Age: {ITEM.LASTVALUE1}'
+          manual_close: 'YES'
+          tags:
+          - tag: scope
+            value: notice
+        - uuid: f51f0ea7634b481497ffcd0c5c677127
+          expression: last(/Snipe-IT monitoring/sklad.maint.age[{#MAINT.ID}])>{$SNIPEIT.MAINT.AGE.WARN}
+          name: Maintenance "{#MAINT.TITLE}" (asset {#MAINT.ASSET}) takes over {$SNIPEIT.MAINT.AGE.WARN}
+            days
+          priority: WARNING
+          description: The maintenance has been open for more than {$SNIPEIT.MAINT.AGE.WARN} days. Escalates
+            to High once {$SNIPEIT.MAINT.AGE.CRIT} days are exceeded.
+          opdata: 'Age: {ITEM.LASTVALUE1}'
+          manual_close: 'YES'
+          dependencies:
+          - name: Maintenance "{#MAINT.TITLE}" (asset {#MAINT.ASSET}) takes over {$SNIPEIT.MAINT.AGE.CRIT}
+              days
+            expression: last(/Snipe-IT monitoring/sklad.maint.age[{#MAINT.ID}])>{$SNIPEIT.MAINT.AGE.CRIT}
+          tags:
+          - tag: scope
+            value: notice
+        tags:
+        - tag: component
+          value: maintenance
+      graph_prototypes:
+      - uuid: c853608968c34c94bdbfdd42622450fa
+        name: Maintenance {#MAINT.ID} "{#MAINT.TITLE}" age
+        graph_items:
+        - drawtype: BOLD_LINE
+          color: F63100
+          item:
+            host: Snipe-IT monitoring
+            key: sklad.maint.age[{#MAINT.ID}]
+      master_item:
+        key: sklad.maintenances.parsing
+      preprocessing:
+      - type: JAVASCRIPT
+        parameters:
+        - "var d = JSON.parse(value).body;\nvar out = [];\nfor (var i = 0; i < d.rows.length; i++) {\n\
+          \    var r = d.rows[i];\n    if (r.completion_date !== null) { continue; }\n    out.push({\n\
+          \        '{#MAINT.ID}': String(r.id),\n        '{#MAINT.TITLE}': r.title || '',\n        '{#MAINT.ASSET}':\
+          \ r.asset ? (r.asset.name || '') : '',\n        '{#MAINT.ASSET_TAG}': r.asset ? (r.asset.asset_tag\
+          \ || '') : '',\n        '{#MAINT.TYPE}': r.asset_maintenance_type || '',\n        '{#MAINT.START}':\
+          \ r.start_date ? (r.start_date.datetime || '') : ''\n    });\n}\nreturn JSON.stringify(out);"
+      tags:
+      - tag: component
+        value: maintenance
+    macros:
+    - macro: '{$SNIPEIT_URL}'
+      description: Snipe-IT base URL, e.g. https://snipeit.example.com
+    - macro: '{$SNIPEIT_TOKEN}'
+      type: SECRET_TEXT
+      description: 'Snipe-IT API token (Bearer). Create in Snipe-IT: user profile -> API Keys.'
+    - macro: '{$SNIPEIT.HTTP_TIMEOUT}'
+      value: 15s
+      description: Timeout of every HTTP request to the API.
+    - macro: '{$SNIPEIT.MAINT.AGE.WARN}'
+      value: '30'
+      description: Warning threshold for the age of an open maintenance, days.
+    - macro: '{$SNIPEIT.MAINT.AGE.CRIT}'
+      value: '90'
+      description: Critical threshold for the age of an open maintenance, days.
+    - macro: '{$SNIPEIT.MAINT.LIMIT}'
+      value: '1000'
+      description: Maximum number of maintenance records fetched per poll (API "limit" parameter).
+    graphs:
+    - uuid: 5dc300fa644b46fd8f112b6c1664c24e
+      name: 'Snipe-IT: Inventory totals'
+      graph_items:
+      - drawtype: BOLD_LINE
+        item:
+          host: Snipe-IT monitoring
+          key: sklad.assets
+        color: 199C0D
+      - item:
+          host: Snipe-IT monitoring
           key: sklad.users
-          delay: 12h
-          history: 600d
-          trends: '0'
-          preprocessing:
-            - type: JSONPATH
-              parameters:
-                - $.body.total
-          url: '{$SNIPEIT_URL}/api/v1/users'
-          headers:
-            - name: Accept
-              value: application/json
-            - name: Content-Type
-              value: application/json
-            - name: Authorization
-              value: 'Bearer {$SNIPEIT_TOKEN}'
-          output_format: JSON
-          verify_peer: 'YES'
-      discovery_rules:
-        - uuid: 4ad60618f77746ca87a82e5b0622d9f0
-          name: 'Categories discovery'
-          type: DEPENDENT
-          key: sklad.categories.discovery
-          lifetime: 30d
-          enabled_lifetime_type: DISABLE_NEVER
-          item_prototypes:
-            - uuid: aa789a3e75a042b8a56b3de5d33bc2e8
-              name: 'Category {#NAME} count'
-              type: DEPENDENT
-              key: 'sklad.category.count.[{#NAME}]'
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$..[?(@.name==''{#NAME}'')].assets_count'
-                - type: TRIM
-                  parameters:
-                    - '[]'
-              master_item:
-                key: sklad.categories.parsing
-          master_item:
-            key: sklad.categories.parsing
-          preprocessing:
-            - type: JSONPATH
-              parameters:
-                - '$..rows[:]'
-            - type: STR_REPLACE
-              parameters:
-                - '"name"'
-                - '"{#NAME}"'
-        - uuid: fd3e1f3f180f4928bc9b5f49b8f0856f
-          name: 'Asset statuslabels discovery'
-          type: DEPENDENT
-          key: sklad.statuslabels.discovery
-          lifetime: 30d
-          enabled_lifetime_type: DISABLE_NEVER
-          item_prototypes:
-            - uuid: 7c9e56fcb9524349b7ab43a992ef3277
-              name: 'Label {#NAME} count'
-              type: DEPENDENT
-              key: 'sklad.label.count.[{#NAME}]'
-              preprocessing:
-                - type: JSONPATH
-                  parameters:
-                    - '$..[?(@.name==''{#NAME}'')].assets_count'
-                - type: TRIM
-                  parameters:
-                    - '[]'
-              master_item:
-                key: sklad.statuslabels.parsing
-          master_item:
-            key: sklad.statuslabels.parsing
-          preprocessing:
-            - type: JSONPATH
-              parameters:
-                - '$..rows[:]'
-            - type: STR_REPLACE
-              parameters:
-                - '"name"'
-                - '"{#NAME}"'
-      macros:
-        - macro: '{$SNIPEIT_TOKEN}'
-        - macro: '{$SNIPEIT_URL}'
+        color: 2774A4
+        sortorder: '1'
+      - item:
+          host: Snipe-IT monitoring
+          key: sklad.licenses
+        color: F63100
+        sortorder: '2'
+      - item:
+          host: Snipe-IT monitoring
+          key: sklad.models
+        color: A54F10
+        sortorder: '3'
+      - drawtype: BOLD_LINE
+        item:
+          host: Snipe-IT monitoring
+          key: sklad.maintenances.open
+        color: FC6EA3
+        sortorder: '4'
+    - uuid: f605e420a42641cf84acf4aa7575d37f
+      name: 'Snipe-IT: Supplies and structure'
+      graph_items:
+      - drawtype: BOLD_LINE
+        item:
+          host: Snipe-IT monitoring
+          key: sklad.consumables
+        color: B94048
+      - item:
+          host: Snipe-IT monitoring
+          key: sklad.accessories
+        color: 6C59DC
+        sortorder: '1'
+      - item:
+          host: Snipe-IT monitoring
+          key: sklad.components
+        color: 7F721F
+        sortorder: '2'
+      - item:
+          host: Snipe-IT monitoring
+          key: sklad.locations
+        color: 0E6667
+        sortorder: '3'
+      - item:
+          host: Snipe-IT monitoring
+          key: sklad.suppliers
+        color: D85F0C
+        sortorder: '4'
+      - item:
+          host: Snipe-IT monitoring
+          key: sklad.manufacturers
+        color: 465AC4
+        sortorder: '5'
+      - item:
+          host: Snipe-IT monitoring
+          key: sklad.maintenances
+        color: C11B1B
+        sortorder: '6'
+    dashboards:
+    - uuid: 0b71800077bf4000a7a6bce998ca97dc
+      name: Snipe-IT overview
+      pages:
+      - name: Overview
+        widgets:
+        - type: item
+          name: Assets
+          x: '0'
+          y: '0'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Assets
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.assets
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Users
+          x: '9'
+          y: '0'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Users
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.users
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Licenses
+          x: '18'
+          y: '0'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Licenses
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.licenses
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Models
+          x: '27'
+          y: '0'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Models
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.models
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Accessories
+          x: '36'
+          y: '0'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Accessories
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.accessories
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Components
+          x: '45'
+          y: '0'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Components
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.components
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Consumables
+          x: '54'
+          y: '0'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Consumables
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.consumables
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Locations
+          x: '63'
+          y: '0'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Locations
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.locations
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Maintenances total
+          x: '0'
+          y: '2'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Maintenances total
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.maintenances
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Open maintenances
+          x: '9'
+          y: '2'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: STRING
+            name: bg_color
+            value: FF5252
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Open maintenances
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.maintenances.open
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Suppliers
+          x: '18'
+          y: '2'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Suppliers
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.suppliers
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: item
+          name: Manufacturers
+          x: '27'
+          y: '2'
+          width: '9'
+          hide_header: 'YES'
+          fields:
+          - type: INTEGER
+            name: decimal_places
+            value: '0'
+          - type: STRING
+            name: description
+            value: Manufacturers
+          - type: ITEM
+            name: itemid.0
+            value:
+              host: Snipe-IT monitoring
+              key: sklad.manufacturers
+          - type: INTEGER
+            name: show.0
+            value: '2'
+          - type: INTEGER
+            name: show.1
+            value: '1'
+          - type: INTEGER
+            name: units_show
+            value: '0'
+        - type: graph
+          x: '0'
+          y: '4'
+          width: '36'
+          height: '5'
+          fields:
+          - type: GRAPH
+            name: graphid.0
+            value:
+              host: Snipe-IT monitoring
+              name: 'Snipe-IT: Inventory totals'
+          - type: STRING
+            name: reference
+            value: AAAAA
+        - type: graph
+          x: '36'
+          y: '4'
+          width: '36'
+          height: '5'
+          fields:
+          - type: GRAPH
+            name: graphid.0
+            value:
+              host: Snipe-IT monitoring
+              name: 'Snipe-IT: Supplies and structure'
+          - type: STRING
+            name: reference
+            value: AAAAB
+    tags:
+    - tag: class
+      value: software
+    - tag: target
+      value: snipeit
